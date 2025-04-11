@@ -6,9 +6,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class CrearEsquema {
+public class Crear_Esquema {
     public static void crearTablas() {
-        try (Connection conn = Conexion.getConexion(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = Conexion.getInstancia().getConnection(); Statement stmt = conn.createStatement()) {
 
             // Tabla CLIENTE
             stmt.executeUpdate("""

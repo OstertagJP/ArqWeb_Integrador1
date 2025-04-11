@@ -1,7 +1,7 @@
 package org.example.DAO;
 
-import db.Conexion;
-import modelo.Cliente;
+import org.example.db.Conexion;
+import org.example.entities.Cliente;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ public class ClienteDAO {
     public void agregarCliente(Cliente cliente) {
         String sql = "INSERT INTO cliente(nombre, email) VALUES (?, ?)";
 
-        try (Connection conn = Conexion.conectar();
+        try (Connection conn = Conexion.getInstancia().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cliente.getNombre());
@@ -28,7 +28,7 @@ public class ClienteDAO {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM cliente";
 
-        try (Connection conn = Conexion.conectar();
+        try (Connection conn = Conexion.getInstancia().getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 

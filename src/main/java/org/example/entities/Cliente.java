@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example.entities;
 
 public class Cliente {
     private int idCliente;
