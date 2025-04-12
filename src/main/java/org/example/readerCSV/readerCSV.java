@@ -5,11 +5,13 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.example.DAO.FacturaDAO;
 import org.example.DAO.Factura_ProductoDAO;
+import org.example.DAO.ProductoDAO;
 import org.example.db.Conexion;
 import org.example.entities.Cliente;
 import org.example.DAO.ClienteDAO;
 import org.example.entities.Factura;
 import org.example.entities.Factura_Producto;
+import org.example.entities.Producto;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class readerCSV {
     ClienteDAO cliDAO = new ClienteDAO(conn);
     FacturaDAO facDAO = new FacturaDAO(conn);
     Factura_ProductoDAO facProDAO = new Factura_ProductoDAO(conn);
+    ProductoDAO proDAO = new ProductoDAO(conn);
 
     private Iterable<CSVRecord> getData(String archivo) throws IOException {
         String path = "src\\main\\resources\\" + archivo;
@@ -53,7 +56,7 @@ public class readerCSV {
 
                             //insertDireccion(direccion, conn);
                         } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de dirección: " + e.getMessage());
+                            System.err.println("Error de formato en datos de clientes: " + e.getMessage());
                         }
                     }
                 }
@@ -74,7 +77,7 @@ public class readerCSV {
 
                             //insertDireccion(direccion, conn);
                         } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de dirección: " + e.getMessage());
+                            System.err.println("Error de formato en datos de facturas: " + e.getMessage());
                         }
                     }
                 }
@@ -98,12 +101,34 @@ public class readerCSV {
 
                             //insertDireccion(direccion, conn);
                         } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de dirección: " + e.getMessage());
+                            System.err.println("Error de formato en datos de fact-productos: " + e.getMessage());
                         }
                     }
                 }
             }
             System.out.println("Facturas-Producto insertadas");
+
+            for(CSVRecord row : getData("productos.csv")) {
+                if(row.size() >= 3) { // Verificar que hay al menos 3 campos en el CSVRecord
+                    String idProducto = row.get(0);
+                    String nombre = row.get(1);
+                    String valor = row.get(2);
+                    if(!idProducto.isEmpty() && !nombre.isEmpty() && !valor.isEmpty()) {
+                        try {
+                            int producto = Integer.parseInt(idProducto);
+                            float val= Float.parseFloat(valor);
+
+                            Producto prod = new Producto(producto, nombre, val);
+                            proDAO.agregarProducto(prod);
+
+                        } catch (NumberFormatException e) {
+                            System.err.println("Error de formato en datos de productos: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            System.out.println("Productos insertados");
+
         } catch (Exception e) {
             System.err.println("Error al poblar la base de datos: " + e.getMessage());
             if (conn != null) {
