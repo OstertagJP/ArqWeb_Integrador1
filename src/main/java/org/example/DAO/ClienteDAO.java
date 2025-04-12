@@ -9,6 +9,12 @@ import java.util.List;
 
 public class ClienteDAO {
 
+    private Connection conn;
+
+    public ClienteDAO(Connection conn) {
+        this.conn = conn;
+    }
+
     public void agregarCliente(Cliente cliente) {
         String sql = "INSERT INTO cliente(nombre, email) VALUES (?, ?)";
 
@@ -46,5 +52,7 @@ public class ClienteDAO {
 
         return clientes;
     }
+
+    //Retornar una lista de clientes ordenada descendentemente por total de facturación
 }
 
