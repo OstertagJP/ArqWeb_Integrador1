@@ -36,4 +36,44 @@ public class FacturaDAO {
 
     //    public List<Factura> getFacturas()
 
+
+    public List<factura> getFacturas() {
+
+        String consulta = "SELECT * FROM factura";
+
+        List<factura> facturas = new ArrayList<>();
+        PreparedStatement ps = null;
+        ResultSet resultado = null;
+
+        try {
+            ps = this.conn.prepareStatement(consulta);
+            resultado = ps.executeQuery();
+
+            while (resultado.next()) {
+                int idFactura = resultado.getInt("idFactura"));
+                int idCliente = resultado.getInt("idCliente");
+                factura f = new factura(idFactura,idCliente);
+                facturas.add(f);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (resultado != null) {
+                    resultado.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                coneccion.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return facturas;
+    }
+
 }
