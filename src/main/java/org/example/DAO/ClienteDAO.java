@@ -31,7 +31,6 @@ public class ClienteDAO {
         }
     }
 
-
     //Retorna una lista de clientes ordenada descendentemente por total de facturación
 
     public List<ClienteDTO> getClientesMayorFacturacion() throws SQLException {
@@ -59,7 +58,6 @@ public class ClienteDAO {
 
         return clientes;
     }
-
 
     public List<Cliente> obtenerTodos() {
         List<Cliente> clientes = new ArrayList<>();

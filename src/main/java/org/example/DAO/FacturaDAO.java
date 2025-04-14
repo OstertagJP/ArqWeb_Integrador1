@@ -4,11 +4,15 @@ import org.example.db.Conexion;
 import org.example.entities.Cliente;
 import org.example.entities.Factura;
 
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class FacturaDAO {
+
     private Connection conn;
 
     public FacturaDAO(Connection conn) {
@@ -37,11 +41,11 @@ public class FacturaDAO {
     //    public List<Factura> getFacturas()
 
 
-    public List<factura> getFacturas() {
+    // Devuelve una lista de todas las facturas en la base de datos
+    public List<Factura> getFacturas() {
 
         String consulta = "SELECT * FROM factura";
-
-        List<factura> facturas = new ArrayList<>();
+        List<Factura> facturas = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet resultado = null;
 
@@ -50,30 +54,24 @@ public class FacturaDAO {
             resultado = ps.executeQuery();
 
             while (resultado.next()) {
-                int idFactura = resultado.getInt("idFactura"));
-                int idCliente = resultado.getInt("idCliente");
-                factura f = new factura(idFactura,idCliente);
+                int idFactura = resultado.getInt("id_factura");
+                int idCliente = resultado.getInt("id_cliente");
+
+                Factura f = new Factura(idFactura, idCliente);
                 facturas.add(f);
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
             try {
-                if (resultado != null) {
-                    resultado.close();
-                }
-                if (ps != null) {
-                    ps.close();
-                }
-                coneccion.commit();
+                if (resultado != null) resultado.close();
+                if (ps != null) ps.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
 
-
         return facturas;
     }
-
 }

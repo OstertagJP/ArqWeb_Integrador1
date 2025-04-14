@@ -19,7 +19,7 @@ public class Conexion {
         try {
             Class.forName(DRIVER);
             conn = DriverManager.getConnection(URL, USER, PASSWORD);
-            conn.setAutoCommit(false); // Opcional, según tu lógica
+            conn.setAutoCommit(false); // Opcional, según la lógica
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
