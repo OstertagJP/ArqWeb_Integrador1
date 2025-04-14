@@ -28,10 +28,6 @@ public class Cliente {
         return email;
     }
 
-    public void setIdCliente(int idCliente) {
-        this.idCliente = idCliente;
-    }
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
