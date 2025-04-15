@@ -21,113 +21,59 @@ import java.sql.SQLException;
 
 public class readerCSV {
 
-    private static Conexion instancia;
+   // private static Conexion instancia;
     private Connection conn;
 
-    ClienteDAO cliDAO = new ClienteDAO(conn);
-    FacturaDAO facDAO = new FacturaDAO(conn);
-    Factura_ProductoDAO facProDAO = new Factura_ProductoDAO(conn);
-    ProductoDAO proDAO = new ProductoDAO(conn);
+    // Constructor que inicializa la conexión
+    public readerCSV() {
+        try {
+            this.conn = Conexion.getInstancia().getConnection();
+            // Desactivar auto-commit para manejar transacciones
+            this.conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            System.err.println("Error al obtener conexión: " + e.getMessage());
+        }
+    }
+    // DAOs inicializados con la conexión válida
+    private ClienteDAO getClienteDAO() {
+        return new ClienteDAO(conn);
+    }
+
+    private ProductoDAO getProductoDAO() {
+        return new ProductoDAO(conn);
+    }
+
+    private FacturaDAO getFacturaDAO() {
+        return new FacturaDAO(conn);
+    }
+
+    private Factura_ProductoDAO getFacturaProductoDAO() {
+        return new Factura_ProductoDAO(conn);
+    }
 
     private Iterable<CSVRecord> getData(String archivo) throws IOException {
         String path = "src\\main\\resources\\" + archivo;
         Reader in = new FileReader(path);
-        String[] header = {};  // Puedes configurar tu encabezado personalizado aquí si es necesario
-        CSVParser csvParser = CSVFormat.EXCEL.withHeader(header).parse(in);
 
-        Iterable<CSVRecord> records = csvParser.getRecords();
-        return records;
+        CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
+        return csvParser.getRecords();
     }
 
-    public void populateDB() throws Exception {
+    public void populateDB()  {
         try {
             System.out.println("Populating DB...");
-            for(CSVRecord row : getData("clientes.csv")) {
-                if(row.size() >= 3) { // Verificar que hay al menos 3 campos en el CSVRecord
-                    String idCliente = row.get(0);
-                    String nombre = row.get(1);
-                    String email = row.get(2);
-                    if(!idCliente.isEmpty() && !nombre.isEmpty() && !email.isEmpty()) {
-                        try {
-                            int id_cliente = Integer.parseInt(idCliente);
 
-                            Cliente cliente = new Cliente(id_cliente, nombre, email);
-                            cliDAO.agregarCliente(cliente);
+            cargarClientes();
 
-                            //insertDireccion(direccion, conn);
-                        } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de clientes: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-            System.out.println("Clientes insertados");
+            cargarProductos();
 
-            for(CSVRecord row : getData("facturas.csv")) {
-                if(row.size() >= 2) { // Verificar que hay al menos 3 campos en el CSVRecord
-                    String idFactura = row.get(0);
-                    String idCliente = row.get(1);
-                    if(!idFactura.isEmpty() && !idCliente.isEmpty()) {
-                        try {
-                            int id_factura = Integer.parseInt(idFactura);
-                            int id_cliente = Integer.parseInt(idCliente);
+            cargarFacturas();
 
-                            Factura factura = new Factura(id_factura, id_cliente);
-                            facDAO.agregarFactura(factura);
+            cargarFacturasProductos();
 
-                            //insertDireccion(direccion, conn);
-                        } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de facturas: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-
-            System.out.println("Facturas insertadas");
-
-            for(CSVRecord row : getData("facturas-productos.csv")) {
-                if(row.size() >= 3) { // Verificar que hay al menos 3 campos en el CSVRecord
-                    String idFactura = row.get(0);
-                    String idProducto = row.get(1);
-                    String cantidad = row.get(2);
-                    if(!idFactura.isEmpty() && !idProducto.isEmpty() && !cantidad.isEmpty()) {
-                        try {
-                            int id_factura = Integer.parseInt(idFactura);
-                            int id_producto = Integer.parseInt(idProducto);
-                            int cant= Integer.parseInt(cantidad);
-
-                            Factura_Producto factura_producto = new Factura_Producto(id_factura, id_producto, cant);
-                            facProDAO.insertFactura_Producto(factura_producto);
-
-                            //insertDireccion(direccion, conn);
-                        } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de fact-productos: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-            System.out.println("Facturas-Producto insertadas");
-
-            for(CSVRecord row : getData("productos.csv")) {
-                if(row.size() >= 3) { // Verificar que hay al menos 3 campos en el CSVRecord
-                    String idProducto = row.get(0);
-                    String nombre = row.get(1);
-                    String valor = row.get(2);
-                    if(!idProducto.isEmpty() && !nombre.isEmpty() && !valor.isEmpty()) {
-                        try {
-                            int producto = Integer.parseInt(idProducto);
-                            float val= Float.parseFloat(valor);
-
-                            Producto prod = new Producto(producto, nombre, val);
-                            proDAO.agregarProducto(prod);
-
-                        } catch (NumberFormatException e) {
-                            System.err.println("Error de formato en datos de productos: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-            System.out.println("Productos insertados");
+            // Confirmar transacción si todo va bien
+            conn.commit();
+            System.out.println("✅ Todos los datos fueron cargados exitosamente");
 
         } catch (Exception e) {
             System.err.println("Error al poblar la base de datos: " + e.getMessage());
@@ -138,6 +84,95 @@ public class readerCSV {
                     System.err.println("Error al hacer rollback: " + ex.getMessage());
                 }
             }
+        } finally {
+            // Cerrar conexión
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Error al cerrar conexión: " + e.getMessage());
+                }
+            }
         }
     }
-}
+
+        private void cargarClientes() throws IOException {
+            ClienteDAO clienteDAO = getClienteDAO();
+            System.out.println("Cargando clientes...");
+
+            for (CSVRecord row : getData("clientes.csv")) {
+                try {
+                    int idCliente = Integer.parseInt(row.get("idCliente"));
+                    String nombre = row.get("nombre");
+                    String email = row.get("email");
+
+                    Cliente cliente = new Cliente(idCliente, nombre, email);
+                    clienteDAO.agregarCliente(cliente);
+                } catch (Exception e) {
+                    System.err.println("Error al procesar cliente: " + e.getMessage());
+                }
+            }
+
+            System.out.println("✅ Clientes insertados");
+        }
+
+        private void cargarProductos() throws IOException {
+            ProductoDAO productoDAO = getProductoDAO();
+            System.out.println("Cargando productos...");
+
+            for (CSVRecord row : getData("productos.csv")) {
+                try {
+                    int idProducto = Integer.parseInt(row.get("idProducto"));
+                    String nombre = row.get("nombre");
+                    float valor = Float.parseFloat(row.get("valor"));
+
+                    Producto producto = new Producto(idProducto, nombre, valor);
+                    productoDAO.agregarProducto(producto);
+                } catch (Exception e) {
+                    System.err.println("Error al procesar producto: " + e.getMessage());
+                }
+            }
+
+            System.out.println("✅ Productos insertados");
+        }
+
+        private void cargarFacturas() throws IOException {
+            FacturaDAO facturaDAO = getFacturaDAO();
+            System.out.println("Cargando facturas...");
+
+            for (CSVRecord row : getData("facturas.csv")) {
+                try {
+                    int idFactura = Integer.parseInt(row.get("idFactura"));
+                    int idCliente = Integer.parseInt(row.get("idCliente"));
+
+                    Factura factura = new Factura(idFactura, idCliente);
+                    facturaDAO.agregarFactura(factura);
+                } catch (Exception e) {
+                    System.err.println("Error al procesar factura: " + e.getMessage());
+                }
+            }
+
+            System.out.println("✅ Facturas insertadas");
+        }
+
+        private void cargarFacturasProductos() throws IOException {
+            Factura_ProductoDAO facturaProductoDAO = getFacturaProductoDAO();
+            System.out.println("Cargando relaciones factura-producto...");
+
+            for (CSVRecord row : getData("facturas-productos.csv")) {
+                try {
+                    int idFactura = Integer.parseInt(row.get("idFactura"));
+                    int idProducto = Integer.parseInt(row.get("idProducto"));
+                    int cantidad = Integer.parseInt(row.get("cantidad"));
+
+                    Factura_Producto facturaProducto = new Factura_Producto(idFactura, idProducto, cantidad);
+                    facturaProductoDAO.insertFactura_Producto(facturaProducto);
+                } catch (Exception e) {
+                    System.err.println("Error al procesar factura-producto: " + e.getMessage());
+                }
+            }
+
+            System.out.println("✅ Relaciones factura-producto insertadas");
+        }
+    }
+
