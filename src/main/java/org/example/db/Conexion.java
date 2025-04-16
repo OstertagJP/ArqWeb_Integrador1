@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-
 public class Conexion {
     private static final String URL = "jdbc:mysql://localhost:3306/integrador1?useSSL=false&serverTimezone=UTC";
     private static final String USER = "root";
@@ -35,6 +34,14 @@ public class Conexion {
 
     // Método para acceder a la conexión
     public Connection getConnection() {
+        try {
+            if (conn == null || conn.isClosed()) {
+                conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                conn.setAutoCommit(false); // Restaurar comportamiento anterior si se recrea
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return conn;
     }
 
@@ -51,4 +58,3 @@ public class Conexion {
         }
     }
 }
-

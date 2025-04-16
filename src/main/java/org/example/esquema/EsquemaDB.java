@@ -34,40 +34,39 @@ public class EsquemaDB {
             // Tabla CLIENTE
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS cliente (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    nombre VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) NOT NULL UNIQUE
+                    idCliente INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre VARCHAR(500) NOT NULL,
+                    email VARCHAR(150) NOT NULL UNIQUE
                 );
             """);
 
             // Tabla PRODUCTO
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS producto (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    nombre VARCHAR(100) NOT NULL,
-                    precio DECIMAL(10,2) NOT NULL
+                    idProducto INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre VARCHAR(45) NOT NULL,
+                    valor FLOAT NOT NULL
                 );
             """);
 
             // Tabla FACTURA
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS factura (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    fecha DATE NOT NULL,
-                    id_cliente INT,
-                    FOREIGN KEY (id_cliente) REFERENCES cliente(id)
+                    idFactura INT AUTO_INCREMENT PRIMARY KEY,
+                    idCliente INT,
+                    FOREIGN KEY (idCliente) REFERENCES cliente(idCliente)
                 );
             """);
 
             // Tabla FACTURA_PRODUCTO (relación muchos a muchos)
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS factura_producto (
-                    id_factura INT,
-                    id_producto INT,
+                    idFactura INT,
+                    idProducto INT,
                     cantidad INT NOT NULL,
-                    PRIMARY KEY (id_factura, id_producto),
-                    FOREIGN KEY (id_factura) REFERENCES factura(id),
-                    FOREIGN KEY (id_producto) REFERENCES producto(id)
+                    PRIMARY KEY (idFactura, idProducto),
+                    FOREIGN KEY (idFactura) REFERENCES factura(idFactura),
+                    FOREIGN KEY (idProducto) REFERENCES producto(idProducto)
                 );
             """);
 

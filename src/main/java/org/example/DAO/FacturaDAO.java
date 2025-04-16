@@ -1,77 +1,66 @@
 package org.example.DAO;
 
-import org.example.db.Conexion;
-import org.example.entities.Cliente;
 import org.example.entities.Factura;
 
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FacturaDAO {
 
-    private Connection conn;
+    private final Connection conn;
 
     public FacturaDAO(Connection conn) {
         this.conn = conn;
     }
 
-    //Agrega una factura a la base de datos
-
-    public void agregarFactura(Factura factura) {
-        String sql = "INSERT INTO factura(id_factura, id_cliente) VALUES (?,?)";
-
-        try (Connection conn = Conexion.getInstancia().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, factura.getId());
-            stmt.setInt(2, factura.getIdCliente());
-
+    // Agrega una factura a la base de datos
+    public void agregarFactura(Factura factura) throws SQLException {
+        String sql = "INSERT INTO factura(idCliente) VALUES (?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, factura.getIdCliente());
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
-
-    //Devuelver una lista de todas las facturas de la base de datos.
-
-    //    public List<Factura> getFacturas()
-
-
     // Devuelve una lista de todas las facturas en la base de datos
     public List<Factura> getFacturas() {
-
         String consulta = "SELECT * FROM factura";
         List<Factura> facturas = new ArrayList<>();
-        PreparedStatement ps = null;
-        ResultSet resultado = null;
 
-        try {
-            ps = this.conn.prepareStatement(consulta);
-            resultado = ps.executeQuery();
+        try (PreparedStatement ps = conn.prepareStatement(consulta);
+             ResultSet resultado = ps.executeQuery()) {
 
             while (resultado.next()) {
-                int idFactura = resultado.getInt("id_factura");
-                int idCliente = resultado.getInt("id_cliente");
+                int idFactura = resultado.getInt("idFactura");
+                int idCliente = resultado.getInt("idCliente");
 
                 Factura f = new Factura(idFactura, idCliente);
                 facturas.add(f);
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                if (resultado != null) resultado.close();
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
 
         return facturas;
     }
+
+    public boolean existeFactura(int idFactura) {
+        String sql = "SELECT 1 FROM factura WHERE idFactura = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idFactura);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
+
