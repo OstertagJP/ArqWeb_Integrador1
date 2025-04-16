@@ -27,7 +27,7 @@ public class ClienteDTO {
 
     @Override
     public String toString(){
-        return "Nombre: " + this.nombre + ", email: " + this.email + ", total facturado: " + this.facturado;
+        return String.format("Nombre: %s, Email: %s, Total facturado: $%d", this.nombre, this.email, this.facturado);
     }
 
 }
